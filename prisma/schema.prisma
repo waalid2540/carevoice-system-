@@ -1,0 +1,239 @@
+// CareVoice - Multi-tenant SaaS for Audio Announcements
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== ENUMS ====================
+
+enum UserRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum AnnouncementType {
+  TTS
+  MP3
+}
+
+enum DeviceStatus {
+  PENDING
+  PAIRED
+  OFFLINE
+}
+
+enum PlayStatus {
+  SCHEDULED
+  PLAYED
+  SKIPPED
+  FAILED
+}
+
+// ==================== MODELS ====================
+
+model Organization {
+  id                   String             @id @default(cuid())
+  name                 String
+  timezone             String             @default("America/New_York")
+  subscriptionStatus   SubscriptionStatus @default(TRIAL)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?
+  trialEndsAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  // Relations
+  users               User[]
+  rooms               Room[]
+  devices             Device[]
+  announcements       Announcement[]
+  schedules           Schedule[]
+  emergencyBroadcasts EmergencyBroadcast[]
+  playLogs            PlayLog[]
+  auditLogs           AuditLog[]
+
+  @@index([stripeCustomerId])
+}
+
+model User {
+  id             String       @id @default(cuid())
+  clerkId        String       @unique
+  email          String
+  name           String?
+  role           UserRole     @default(STAFF)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([clerkId])
+  @@index([email])
+}
+
+model Room {
+  id             String       @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relations
+  devices       Device[]
+  scheduleItems ScheduleItem[]
+  playLogs      PlayLog[]
+
+  @@index([organizationId])
+}
+
+model Device {
+  id               String       @id @default(cuid())
+  name             String
+  roomId           String?
+  room             Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pairingCode      String?      @unique
+  pairingExpiresAt DateTime?
+  lastSeenAt       DateTime?
+  status           DeviceStatus @default(PENDING)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // Relations
+  playLogs PlayLog[]
+
+  @@index([organizationId])
+  @@index([organizationId, roomId])
+  @@index([pairingCode])
+  @@index([status])
+}
+
+model Announcement {
+  id             String           @id @default(cuid())
+  title          String
+  type           AnnouncementType
+  text           String?          // For TTS announcements
+  audioUrl       String?          // For MP3 announcements
+  language       String           @default("en-US")
+  voice          String?          // Voice ID for TTS
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relations
+  scheduleItems       ScheduleItem[]
+  emergencyBroadcasts EmergencyBroadcast[]
+  playLogs            PlayLog[]
+
+  @@index([organizationId])
+  @@index([organizationId, type])
+}
+
+model Schedule {
+  id             String       @id @default(cuid())
+  name           String
+  active         Boolean      @default(true)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relations
+  items ScheduleItem[]
+
+  @@index([organizationId])
+  @@index([organizationId, active])
+}
+
+model ScheduleItem {
+  id             String       @id @default(cuid())
+  scheduleId     String
+  schedule       Schedule     @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  roomId         String?      // null = applies to all rooms
+  room           Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  timeOfDay      String       // Format: "HH:MM" (24-hour)
+  daysOfWeek     Int[]        // 0=Sunday, 1=Monday, ... 6=Saturday
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  enabled        Boolean      @default(true)
+  order          Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([scheduleId])
+  @@index([scheduleId, timeOfDay])
+  @@index([roomId])
+  @@index([announcementId])
+}
+
+model EmergencyBroadcast {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  active         Boolean      @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([organizationId, active])
+  @@index([expiresAt])
+}
+
+model PlayLog {
+  id             String        @id @default(cuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  roomId         String?
+  room           Room?         @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  deviceId       String?
+  device         Device?       @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id], onDelete: SetNull)
+  scheduledAt    DateTime
+  playedAt       DateTime?
+  status         PlayStatus    @default(SCHEDULED)
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId])
+  @@index([organizationId, scheduledAt])
+  @@index([organizationId, deviceId])
+  @@index([deviceId, scheduledAt])
+  @@index([announcementId])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String?
+  action         String       // e.g., "schedule.create", "device.pair"
+  entityType     String       // e.g., "Schedule", "Device"
+  entityId       String?
+  oldValue       Json?
+  newValue       Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
+}
