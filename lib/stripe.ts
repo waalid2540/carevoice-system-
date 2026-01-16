@@ -1,14 +1,36 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-  typescript: true,
+let stripeInstance: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (!stripeInstance) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) {
+      throw new Error("STRIPE_SECRET_KEY environment variable is required");
+    }
+    stripeInstance = new Stripe(key, {
+      apiVersion: "2025-12-15.clover",
+      typescript: true,
+    });
+  }
+  return stripeInstance;
+}
+
+// For backwards compatibility - lazy initialization
+export const stripe = new Proxy({} as Stripe, {
+  get(_, prop) {
+    if (prop === "then") return undefined;
+    const instance = getStripe();
+    return (instance as unknown as Record<string, unknown>)[prop as string];
+  },
 });
 
 export const PLANS = {
   STARTER: {
     name: "Starter",
-    priceId: process.env.STRIPE_STARTER_PRICE_ID!,
+    get priceId() {
+      return process.env.STRIPE_STARTER_PRICE_ID || "price_placeholder";
+    },
     price: 29.99,
     limits: {
       maxRooms: 3,
@@ -27,7 +49,7 @@ export async function createCheckoutSession(
   successUrl: string,
   cancelUrl: string
 ): Promise<string> {
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     customer: customerId || undefined,
     customer_email: customerId ? undefined : customerEmail,
     mode: "subscription",
@@ -60,7 +82,7 @@ export async function createPortalSession(
   customerId: string,
   returnUrl: string
 ): Promise<string> {
-  const session = await stripe.billingPortal.sessions.create({
+  const session = await getStripe().billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
   });
