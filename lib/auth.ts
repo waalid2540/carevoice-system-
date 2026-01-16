@@ -20,6 +20,8 @@ export type AuthContext = {
     name: string;
     timezone: string;
     subscriptionStatus: string;
+    stripeCustomerId: string | null;
+    stripeSubscriptionId: string | null;
   };
 };
 
@@ -69,6 +71,8 @@ export async function getAuthContext(): Promise<AuthContext> {
         name: org.name,
         timezone: org.timezone,
         subscriptionStatus: org.subscriptionStatus,
+        stripeCustomerId: org.stripeCustomerId,
+        stripeSubscriptionId: org.stripeSubscriptionId,
       },
     };
   }
@@ -90,6 +94,8 @@ export async function getAuthContext(): Promise<AuthContext> {
           name: true,
           timezone: true,
           subscriptionStatus: true,
+          stripeCustomerId: true,
+          stripeSubscriptionId: true,
         },
       },
     },
