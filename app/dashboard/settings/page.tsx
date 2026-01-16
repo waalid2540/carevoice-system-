@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,14 +29,13 @@ interface Organization {
   stripeCustomerId: string | null;
 }
 
-export default function SettingsPage() {
+function SettingsContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [org, setOrg] = useState<Organization | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
 
   useEffect(() => {
-    // Check for billing callback
     const billing = searchParams.get("billing");
     if (billing === "success") {
       toast.success("Subscription activated successfully!");
@@ -49,8 +48,6 @@ export default function SettingsPage() {
 
   async function fetchOrg() {
     try {
-      // In a real app, you'd have an API endpoint for this
-      // For now, we'll use a placeholder
       setOrg({
         id: "org-1",
         name: "My Organization",
@@ -124,7 +121,6 @@ export default function SettingsPage() {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
         <p className="text-gray-600 mt-1">
@@ -133,7 +129,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Subscription Status */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -205,7 +200,7 @@ export default function SettingsPage() {
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-800">
                   <strong>Free Trial:</strong> You have 14 days to try
-                  CareVoice. Subscribe to continue after your trial ends.
+                  CareVoice System. Subscribe to continue after your trial ends.
                 </p>
               </div>
             )}
@@ -214,14 +209,13 @@ export default function SettingsPage() {
               <div className="mt-6 p-4 bg-red-50 rounded-lg">
                 <p className="text-sm text-red-800">
                   <strong>Payment Failed:</strong> Please update your payment
-                  method to continue using CareVoice.
+                  method to continue using CareVoice System.
                 </p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Organization Settings */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -249,5 +243,19 @@ export default function SettingsPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
+      }
+    >
+      <SettingsContent />
+    </Suspense>
   );
 }
