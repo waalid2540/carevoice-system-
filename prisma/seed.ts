@@ -20,14 +20,14 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("Seeding database...");
+  console.log("Seeding CareVoice database...");
 
   // Create demo organization
   const org = await prisma.organization.upsert({
-    where: { id: "demo-org-001" },
+    where: { id: "cv-demo-org-001" },
     update: {},
     create: {
-      id: "demo-org-001",
+      id: "cv-demo-org-001",
       name: "Sunshine Adult Day Care",
       timezone: "America/New_York",
       subscriptionStatus: "TRIAL",
@@ -39,20 +39,20 @@ async function main() {
 
   // Create rooms
   const mainRoom = await prisma.room.upsert({
-    where: { id: "room-main-001" },
+    where: { id: "cv-room-main-001" },
     update: {},
     create: {
-      id: "room-main-001",
+      id: "cv-room-main-001",
       name: "Main Activity Room",
       organizationId: org.id,
     },
   });
 
   const quietRoom = await prisma.room.upsert({
-    where: { id: "room-quiet-001" },
+    where: { id: "cv-room-quiet-001" },
     update: {},
     create: {
-      id: "room-quiet-001",
+      id: "cv-room-quiet-001",
       name: "Quiet Room",
       organizationId: org.id,
     },
@@ -62,10 +62,10 @@ async function main() {
 
   // Create devices
   const device1 = await prisma.device.upsert({
-    where: { id: "device-001" },
+    where: { id: "cv-device-001" },
     update: {},
     create: {
-      id: "device-001",
+      id: "cv-device-001",
       name: "Main Room TV",
       roomId: mainRoom.id,
       organizationId: org.id,
@@ -76,10 +76,10 @@ async function main() {
   });
 
   const device2 = await prisma.device.upsert({
-    where: { id: "device-002" },
+    where: { id: "cv-device-002" },
     update: {},
     create: {
-      id: "device-002",
+      id: "cv-device-002",
       name: "Quiet Room Tablet",
       roomId: quietRoom.id,
       organizationId: org.id,
@@ -93,10 +93,10 @@ async function main() {
 
   // Create announcements
   const exerciseAnnouncement = await prisma.announcement.upsert({
-    where: { id: "announcement-exercise" },
+    where: { id: "cv-cv-announcement-exercise" },
     update: {},
     create: {
-      id: "announcement-exercise",
+      id: "cv-cv-announcement-exercise",
       title: "Morning Exercise",
       type: "TTS",
       text: "Good morning everyone! It's time for our morning exercise. Please stand up and follow along with the exercises.",
@@ -106,10 +106,10 @@ async function main() {
   });
 
   const lunchAnnouncement = await prisma.announcement.upsert({
-    where: { id: "announcement-lunch" },
+    where: { id: "cv-announcement-lunch" },
     update: {},
     create: {
-      id: "announcement-lunch",
+      id: "cv-announcement-lunch",
       title: "Lunch Time",
       type: "TTS",
       text: "Attention everyone. Lunch is now being served in the dining area. Please make your way to the dining room.",
@@ -119,10 +119,10 @@ async function main() {
   });
 
   const breakAnnouncement = await prisma.announcement.upsert({
-    where: { id: "announcement-break" },
+    where: { id: "cv-announcement-break" },
     update: {},
     create: {
-      id: "announcement-break",
+      id: "cv-announcement-break",
       title: "Break Time",
       type: "TTS",
       text: "It's break time! Feel free to relax, stretch, or have a snack.",
@@ -132,10 +132,10 @@ async function main() {
   });
 
   const napAnnouncement = await prisma.announcement.upsert({
-    where: { id: "announcement-nap" },
+    where: { id: "cv-announcement-nap" },
     update: {},
     create: {
-      id: "announcement-nap",
+      id: "cv-announcement-nap",
       title: "Nap Time",
       type: "TTS",
       text: "It's time for a rest. Please find a comfortable spot and relax.",
@@ -145,10 +145,10 @@ async function main() {
   });
 
   const cleanupAnnouncement = await prisma.announcement.upsert({
-    where: { id: "announcement-cleanup" },
+    where: { id: "cv-announcement-cleanup" },
     update: {},
     create: {
-      id: "announcement-cleanup",
+      id: "cv-announcement-cleanup",
       title: "Clean Up Time",
       type: "TTS",
       text: "Clean up time! Please help tidy up the room and put away any materials.",
@@ -161,10 +161,10 @@ async function main() {
 
   // Create schedule
   const dailySchedule = await prisma.schedule.upsert({
-    where: { id: "schedule-daily" },
+    where: { id: "cv-schedule-daily" },
     update: {},
     create: {
-      id: "schedule-daily",
+      id: "cv-schedule-daily",
       name: "Daily Schedule",
       active: true,
       organizationId: org.id,
@@ -178,7 +178,7 @@ async function main() {
 
   const scheduleItems = [
     {
-      id: "item-exercise",
+      id: "cv-item-exercise",
       scheduleId: dailySchedule.id,
       roomId: null, // All rooms
       timeOfDay: "09:00",
@@ -188,7 +188,7 @@ async function main() {
       order: 1,
     },
     {
-      id: "item-break-morning",
+      id: "cv-item-break-morning",
       scheduleId: dailySchedule.id,
       roomId: null,
       timeOfDay: "10:30",
@@ -198,7 +198,7 @@ async function main() {
       order: 2,
     },
     {
-      id: "item-lunch",
+      id: "cv-item-lunch",
       scheduleId: dailySchedule.id,
       roomId: null,
       timeOfDay: "12:00",
@@ -208,7 +208,7 @@ async function main() {
       order: 3,
     },
     {
-      id: "item-nap",
+      id: "cv-item-nap",
       scheduleId: dailySchedule.id,
       roomId: quietRoom.id, // Only quiet room
       timeOfDay: "13:00",
@@ -218,7 +218,7 @@ async function main() {
       order: 4,
     },
     {
-      id: "item-break-afternoon",
+      id: "cv-item-break-afternoon",
       scheduleId: dailySchedule.id,
       roomId: null,
       timeOfDay: "15:00",
@@ -228,7 +228,7 @@ async function main() {
       order: 5,
     },
     {
-      id: "item-cleanup",
+      id: "cv-item-cleanup",
       scheduleId: dailySchedule.id,
       roomId: null,
       timeOfDay: "16:30",

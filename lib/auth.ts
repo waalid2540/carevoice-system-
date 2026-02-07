@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { UserRole } from "@prisma/client";
+import { CvUserRole as UserRole } from "@prisma/client";
 
 // DEMO MODE: Set to true to bypass Clerk authentication
 const DEMO_MODE = true;

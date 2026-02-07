@@ -1,5 +1,5 @@
 // CareVoice - Multi-tenant SaaS for Audio Announcements
-// https://pris.ly/d/prisma-schema
+// Tables prefixed with cv_ to avoid conflicts in shared database
 
 generator client {
   provider = "prisma-client-js"
@@ -11,49 +11,59 @@ datasource db {
 
 // ==================== ENUMS ====================
 
-enum UserRole {
+enum CvUserRole {
   OWNER
   ADMIN
   STAFF
+
+  @@map("cv_user_role")
 }
 
-enum SubscriptionStatus {
+enum CvSubscriptionStatus {
   TRIAL
   ACTIVE
   PAST_DUE
   CANCELED
+
+  @@map("cv_subscription_status")
 }
 
-enum AnnouncementType {
+enum CvAnnouncementType {
   TTS
   MP3
+
+  @@map("cv_announcement_type")
 }
 
-enum DeviceStatus {
+enum CvDeviceStatus {
   PENDING
   PAIRED
   OFFLINE
+
+  @@map("cv_device_status")
 }
 
-enum PlayStatus {
+enum CvPlayStatus {
   SCHEDULED
   PLAYED
   SKIPPED
   FAILED
+
+  @@map("cv_play_status")
 }
 
 // ==================== MODELS ====================
 
 model Organization {
-  id                   String             @id @default(cuid())
+  id                   String                @id @default(cuid())
   name                 String
-  timezone             String             @default("America/New_York")
-  subscriptionStatus   SubscriptionStatus @default(TRIAL)
-  stripeCustomerId     String?            @unique
+  timezone             String                @default("America/New_York")
+  subscriptionStatus   CvSubscriptionStatus  @default(TRIAL)
+  stripeCustomerId     String?               @unique
   stripeSubscriptionId String?
   trialEndsAt          DateTime?
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 
   // Relations
   users               User[]
@@ -65,6 +75,7 @@ model Organization {
   playLogs            PlayLog[]
   auditLogs           AuditLog[]
 
+  @@map("cv_organizations")
   @@index([stripeCustomerId])
 }
 
@@ -73,12 +84,13 @@ model User {
   clerkId        String       @unique
   email          String
   name           String?
-  role           UserRole     @default(STAFF)
+  role           CvUserRole   @default(STAFF)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
+  @@map("cv_users")
   @@index([organizationId])
   @@index([clerkId])
   @@index([email])
@@ -97,26 +109,28 @@ model Room {
   scheduleItems ScheduleItem[]
   playLogs      PlayLog[]
 
+  @@map("cv_rooms")
   @@index([organizationId])
 }
 
 model Device {
-  id               String       @id @default(cuid())
+  id               String         @id @default(cuid())
   name             String
   roomId           String?
-  room             Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  room             Room?          @relation(fields: [roomId], references: [id], onDelete: SetNull)
   organizationId   String
-  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  pairingCode      String?      @unique
+  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pairingCode      String?        @unique
   pairingExpiresAt DateTime?
   lastSeenAt       DateTime?
-  status           DeviceStatus @default(PENDING)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  status           CvDeviceStatus @default(PENDING)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   // Relations
   playLogs PlayLog[]
 
+  @@map("cv_devices")
   @@index([organizationId])
   @@index([organizationId, roomId])
   @@index([pairingCode])
@@ -124,23 +138,24 @@ model Device {
 }
 
 model Announcement {
-  id             String           @id @default(cuid())
+  id             String             @id @default(cuid())
   title          String
-  type           AnnouncementType
-  text           String?          // For TTS announcements
-  audioUrl       String?          // For MP3 announcements
-  language       String           @default("en-US")
-  voice          String?          // Voice ID for TTS
+  type           CvAnnouncementType
+  text           String?
+  audioUrl       String?
+  language       String             @default("en-US")
+  voice          String?
   organizationId String
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
   // Relations
   scheduleItems       ScheduleItem[]
   emergencyBroadcasts EmergencyBroadcast[]
   playLogs            PlayLog[]
 
+  @@map("cv_announcements")
   @@index([organizationId])
   @@index([organizationId, type])
 }
@@ -157,6 +172,7 @@ model Schedule {
   // Relations
   items ScheduleItem[]
 
+  @@map("cv_schedules")
   @@index([organizationId])
   @@index([organizationId, active])
 }
@@ -165,10 +181,10 @@ model ScheduleItem {
   id             String       @id @default(cuid())
   scheduleId     String
   schedule       Schedule     @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  roomId         String?      // null = applies to all rooms
+  roomId         String?
   room           Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
-  timeOfDay      String       // Format: "HH:MM" (24-hour)
-  daysOfWeek     Int[]        // 0=Sunday, 1=Monday, ... 6=Saturday
+  timeOfDay      String
+  daysOfWeek     Int[]
   announcementId String
   announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   enabled        Boolean      @default(true)
@@ -176,6 +192,7 @@ model ScheduleItem {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
+  @@map("cv_schedule_items")
   @@index([scheduleId])
   @@index([scheduleId, timeOfDay])
   @@index([roomId])
@@ -192,6 +209,7 @@ model EmergencyBroadcast {
   expiresAt      DateTime?
   createdAt      DateTime     @default(now())
 
+  @@map("cv_emergency_broadcasts")
   @@index([organizationId])
   @@index([organizationId, active])
   @@index([expiresAt])
@@ -209,9 +227,10 @@ model PlayLog {
   announcement   Announcement? @relation(fields: [announcementId], references: [id], onDelete: SetNull)
   scheduledAt    DateTime
   playedAt       DateTime?
-  status         PlayStatus    @default(SCHEDULED)
+  status         CvPlayStatus  @default(SCHEDULED)
   createdAt      DateTime      @default(now())
 
+  @@map("cv_play_logs")
   @@index([organizationId])
   @@index([organizationId, scheduledAt])
   @@index([organizationId, deviceId])
@@ -224,8 +243,8 @@ model AuditLog {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String?
-  action         String       // e.g., "schedule.create", "device.pair"
-  entityType     String       // e.g., "Schedule", "Device"
+  action         String
+  entityType     String
   entityId       String?
   oldValue       Json?
   newValue       Json?
@@ -233,6 +252,7 @@ model AuditLog {
   userAgent      String?
   createdAt      DateTime     @default(now())
 
+  @@map("cv_audit_logs")
   @@index([organizationId])
   @@index([organizationId, createdAt])
   @@index([entityType, entityId])
