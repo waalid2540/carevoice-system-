@@ -158,22 +158,23 @@ export default function HomePage() {
           </p>
           <div className="max-w-md mx-auto bg-white border rounded-xl p-8 shadow-lg">
             <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold">Starter</h3>
+              <h3 className="text-2xl font-bold">Professional</h3>
               <div className="mt-4">
-                <span className="text-5xl font-bold">$29.99</span>
+                <span className="text-5xl font-bold">$99</span>
                 <span className="text-gray-500">/month</span>
               </div>
+              <p className="text-sm text-green-600 mt-2">14-day free trial</p>
             </div>
             <ul className="space-y-4 mb-8">
               {[
-                "Up to 3 rooms",
-                "Up to 3 devices",
+                "Up to 5 rooms",
+                "Up to 10 devices",
                 "Unlimited announcements",
                 "Unlimited schedules",
                 "Text-to-speech & MP3 audio",
                 "Emergency broadcasts",
                 "Offline mode support",
-                "Email support",
+                "Priority support",
               ].map((feature) => (
                 <li key={feature} className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
@@ -219,7 +220,7 @@ export default function HomePage() {
               },
               {
                 q: "Is there a setup fee?",
-                a: "No setup fee for self-service accounts. We offer optional onboarding assistance for $99 if you'd like help getting started.",
+                a: "No setup fee! We offer optional white-glove onboarding for $149 if you'd like us to configure everything for you.",
               },
             ].map((faq) => (
               <div key={faq.q} className="bg-white p-6 rounded-lg shadow-sm">
