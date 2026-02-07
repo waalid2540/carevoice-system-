@@ -8,7 +8,9 @@ import {
   Zap,
   CheckCircle,
   ArrowRight,
+  Phone,
 } from "lucide-react";
+import LeadForm from "@/components/LeadForm";
 
 export default function HomePage() {
   return (
@@ -182,14 +184,41 @@ export default function HomePage() {
                 </li>
               ))}
             </ul>
-            <Link href="/dashboard">
+            <Link href="#get-started">
               <Button className="w-full" size="lg">
-                Try Demo
+                Get Started
               </Button>
             </Link>
             <p className="text-sm text-gray-500 text-center mt-4">
-              Demo mode - no sign-up required
+              Or <Link href="/dashboard" className="text-blue-600 hover:underline">try the demo</Link> first
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Get Started Form Section */}
+      <section id="get-started" className="py-20 bg-blue-600">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-2xl p-8 shadow-xl">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Get Started Today
+              </h2>
+              <p className="text-gray-600">
+                Fill out the form below and we'll set up your free 14-day trial
+              </p>
+            </div>
+            <LeadForm />
+          </div>
+          <div className="mt-8 text-center">
+            <p className="text-blue-100 mb-2">Prefer to talk?</p>
+            <a
+              href="tel:+18015551234"
+              className="inline-flex items-center gap-2 text-white font-semibold hover:underline"
+            >
+              <Phone className="h-5 w-5" />
+              Call us: (801) 555-1234
+            </a>
           </div>
         </div>
       </section>
@@ -229,29 +258,6 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to streamline your announcements?
-          </h2>
-          <p className="text-blue-100 mb-8 text-lg">
-            Join hundreds of care centers using CareVoice System to keep their
-            facilities running smoothly.
-          </p>
-          <Link href="/dashboard">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="text-lg px-8"
-            >
-              Try Demo Now
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
         </div>
       </section>
 
